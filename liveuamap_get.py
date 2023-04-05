@@ -91,9 +91,11 @@ if len(dr)==0:
         for c in ls.keys():
             ss=s.find_all(c)
             for b in ss:
+                v=b.find_all()
                 n=s.new_tag(c)
                 u=b.get(ls[c])
                 n[ls[c]]='%s%s'%(l2,u)if(u[0]in['/','.'])and('http'not in u)else u
+                n.extend(v)
                 b.replace_with(n)
 
         deleted_tags=['map_link_par']

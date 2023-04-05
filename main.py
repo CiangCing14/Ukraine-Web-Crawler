@@ -1,4 +1,4 @@
-import os,sys,importlib,shutil,time,markdown,re,datetime,hashlib,markdown2odt,pyttsx3,requests,datetime,html,jieba
+import os,sys,importlib,shutil,time,markdown,re,datetime,hashlib,markdown2odt,pyttsx3,requests,datetime,html,jieba,threading
 import urllib.parse
 import translators.server as tss
 
@@ -202,6 +202,85 @@ def trans(t,de='zh',sr='auto'):
     except tss.TranslatorError:return t
     except IndexError:print(t);return t
     else:return trans_cycle(t,de,sr)
+class thread_tra(threading.Thread):
+    def __init__(self,ne,a,des,y):
+        threading.Thread.__init__(self);self.ne,self.a,self.des,self.y=ne,a,des,y
+    def run(self):
+        return tra(self.ne,self.a,self.des,self.y)
+def tra_cycle(ne,a,des,y):
+    time.sleep(1)
+    tra(ne,a,des,y)
+def tra(ne,a,des,y):
+    try:
+        global nec
+        print('第%d个新闻元数据开始翻译。'%(a+1))
+        src='auto'
+        if(ne[a]['source'].find('https://maozhuyi.home.blog')!=-1)or(ne[a]['source'].find('https://mlmmlm.icu')!=-1):
+            src='zh'
+        n=ne[a]
+        nl=ne[a]['text'].split('\n')
+        nll=len(nl)
+        ft=['']
+        nz=0
+        while True:
+            if nz>=nll:break
+            ft[-1]=nl[nz]if nz==0 else'%s\n%s'%(ft[-1],nl[nz])
+            if len(ft[-1])>2500:
+                ft[-1]='\n'.join(ft[-1].split('\n')[:-1])
+                ft.append('')
+            nz+=1
+        print([len(b)for b in ft])
+        ftl=len(ft)
+        for b in range(ftl):
+            ft[b]=[c.split(')')for c in ft[b].split('(')]
+        for b in range(ftl):
+            if b==0:
+                print('第%d个新闻开始翻译。'%(a+1))
+            ftbl=len(ft[b])
+            for c in range(ftbl):
+                ftbcl=len(ft[b][c])
+                for d in range(ftbcl):
+                    print('ftbc: ',d+1,'/',ftbcl)
+                    if not ft[b][c][d]:continue
+                    if ft[b][c][d][0]in['/','.']:continue
+                    if('http://'in ft[b][c][d])or('https://'in ft[b][c][d]):
+                        if ft[b][c][d][:7]=='http://':continue
+                        elif ft[b][c][d][:8]=='https://':continue
+                    con=False
+                    for e in fa:
+                        if e in ft[b][c][d]:
+                            if ft[b][c][d].find(e)!=-1 or re.search('\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{2}-\d{2}',ft[b][c][d]):
+                                con=True
+                                break
+                    if con:continue
+                    if not re.search('\w',ft[b][c][d]):continue
+                    ft[b][c][d]=trans(ft[b][c][d],de=des[y],sr=src)
+                ft[b][c]=')'.join(ft[b][c])
+                print('ftb: ',c+1,'/',ftbl)
+            ft[b]='('.join(ft[b])
+            print('ft: ',b+1,'/',ftl)
+        ft='\n'.join(ft).replace(']（图片/','](Images/').replace('）',')').replace('！','!').replace('【','[').replace('】',']').replace('（','(')
+        n['text']='\n\n'.join([e.strip().replace('\n','').replace('＃','#')for e in ft.split('\n\n')]).replace('ikk-> online14','ikk-online14')
+        n['text']=re.sub('([^\\n])(####\s*)(\w)','\\1\\n\\2 \\3',n['text'])
+        n['text']=re.sub('([^\\n#])(###\s*)(\w)','\\1\\n\\2 \\3',n['text'])
+        n['text']=re.sub('([^\\n#])([^\\n#])(##\s*)(\w)','\\1\\2\\n\\3 \\4',n['text'])
+        n['text']=n['text'].replace('＆','&').replace('＃','#')
+        n['text']=html.unescape(n['text'])
+        n['source']=ne[a]['source']
+        n['title']=ne[a]['title']
+        print('翻译标题。')
+        n['title']=trans(n['title'],de=des[y],sr=src)
+        n['title']=n['title'].replace('＆','&').replace('＃','#')
+        n['title']=html.unescape(n['title'])
+        if'description'in n['meta']:
+            if n['meta']['description']:print('翻译简介。');n['meta']['description']=trans(n['meta']['description'],de=des[y],sr=src)
+        if'head description'in n['meta']:print('翻译头部简介。');n['meta']['head description']=trans(n['meta']['head description'],de=des[y],sr=src)
+        nk=list(n['meta'].keys())
+        for b in nk:
+            n['meta'][mt[b].title()]=n['meta'][b]
+            del n['meta'][b]
+        nec.append([a,n])
+    except:tra(ne,a,des,y)
 des=['zh','en']
 fa=['jpg','png','bmp','gif','webp','jpeg']
 fa.extend([e.upper()for e in fa])
@@ -237,74 +316,17 @@ for y in range(len(des)):
             print(nz+1,'/',ksl)
             nz+=1
         nec=[]
-        for a in range(len(ne)):
-            print('第%d个新闻元数据开始翻译。'%(a+1))
-            src='auto'
-            if(ne[a]['source'].find('https://maozhuyi.home.blog')!=-1)or(ne[a]['source'].find('https://mlmmlm.icu')!=-1):
-                src='zh'
-            n=ne[a]
-            nl=ne[a]['text'].split('\n')
-            nll=len(nl)
-            ft=['']
-            nz=0
-            while True:
-                if nz>=nll:break
-                ft[-1]=nl[nz]if nz==0 else'%s\n%s'%(ft[-1],nl[nz])
-                if len(ft[-1])>2500:
-                    ft[-1]='\n'.join(ft[-1].split('\n')[:-1])
-                    ft.append('')
-                nz+=1
-            print([len(b)for b in ft])
-            ftl=len(ft)
-            for b in range(ftl):
-                ft[b]=[c.split(')')for c in ft[b].split('(')]
-            for b in range(ftl):
-                if b==0:
-                    print('第%d个新闻开始翻译。'%(a+1))
-                ftbl=len(ft[b])
-                for c in range(ftbl):
-                    ftbcl=len(ft[b][c])
-                    for d in range(ftbcl):
-                        print('ftbc: ',d+1,'/',ftbcl)
-                        if not ft[b][c][d]:continue
-                        if ft[b][c][d][0]in['/','.']:continue
-                        if('http://'in ft[b][c][d])or('https://'in ft[b][c][d]):
-                            if ft[b][c][d][:7]=='http://':continue
-                            elif ft[b][c][d][:8]=='https://':continue
-                        con=False
-                        for e in fa:
-                            if e in ft[b][c][d]:
-                                if ft[b][c][d].find(e)!=-1 or re.search('\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{2}-\d{2}',ft[b][c][d]):
-                                    con=True
-                                    break
-                        if con:continue
-                        if not re.search('\w',ft[b][c][d]):continue
-                        ft[b][c][d]=trans(ft[b][c][d],de=des[y],sr=src)
-                    ft[b][c]=')'.join(ft[b][c])
-                    print('ftb: ',c+1,'/',ftbl)
-                ft[b]='('.join(ft[b])
-                print('ft: ',b+1,'/',ftl)
-            ft='\n'.join(ft).replace(']（图片/','](Images/').replace('）',')').replace('！','!').replace('【','[').replace('】',']').replace('（','(')
-            n['text']='\n\n'.join([e.strip().replace('\n','').replace('＃','#')for e in ft.split('\n\n')]).replace('ikk-> online14','ikk-online14')
-            n['text']=re.sub('([^\\n])(####\s*)(\w)','\\1\\n\\2 \\3',n['text'])
-            n['text']=re.sub('([^\\n#])(###\s*)(\w)','\\1\\n\\2 \\3',n['text'])
-            n['text']=re.sub('([^\\n#])([^\\n#])(##\s*)(\w)','\\1\\2\\n\\3 \\4',n['text'])
-            n['text']=n['text'].replace('＆','&').replace('＃','#')
-            n['text']=html.unescape(n['text'])
-            n['source']=ne[a]['source']
-            n['title']=ne[a]['title']
-            print('翻译标题。')
-            n['title']=trans(n['title'],de=des[y],sr=src)
-            n['title']=n['title'].replace('＆','&').replace('＃','#')
-            n['title']=html.unescape(n['title'])
-            if'description'in n['meta']:
-                if n['meta']['description']:print('翻译简介。');n['meta']['description']=trans(n['meta']['description'],de=des[y],sr=src)
-            if'head description'in n['meta']:print('翻译头部简介。');n['meta']['head description']=trans(n['meta']['head description'],de=des[y],sr=src)
-            nk=list(n['meta'].keys())
-            for b in nk:
-                n['meta'][mt[b].title()]=n['meta'][b]
-                del n['meta'][b]
-            nec.append(n)
+        nl=len(ne)
+        n=0
+        while True:
+            if(threading.active_count()<3):
+                if n<nl:
+                    print('新闻翻译总进度：',n,'//',nl)
+                    thread_tra(ne,n,des,y).start()
+                    n+=1
+                else:break
+        nec.sort(key=lambda x:x[0])
+        nec=[x[1]for x in nec]
         mds=[]
         for a in nec:
             md='''# %s
