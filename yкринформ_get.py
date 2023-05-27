@@ -71,7 +71,7 @@ if len(dr)==0:
         h.update(ha)
 
         ls={'a':'href','img':'src'}
-        s=bs(i['text'],'html.parser')
+        s=bs(t,'html.parser')
         for c in ls.keys():
             ss=s.find_all(c)
             for b in ss:
