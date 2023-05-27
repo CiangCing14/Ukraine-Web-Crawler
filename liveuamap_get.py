@@ -60,6 +60,7 @@ if len(dr)==0:
     nn=0
     ed=''
     for a in range(len(hl)):
+        i={}
         i=hl[a]
         t=rg.rget(i['url']).text
         s=bs(t,'html.parser')
@@ -79,7 +80,7 @@ if len(dr)==0:
             d.replace_with(nn)
         i['tags']=[d.string[1:]for d in ts.find_all('a')]if(ts:=s.find('div',{'class':'tagas'}))else[]
         print(hl[a])
-        i['source']=s.find('div',{'class':'head_popup'}).find('a',{'class':'source-link'}).get('href')
+        i['source']=u.find('a',{'class':'source-link'}).get('href')if(u:=s.find('div',{'class':'head_popup'}))else i['url']
         ll=[]
         for x in i['videos']:
             if x not in ll:
@@ -92,23 +93,29 @@ if len(dr)==0:
             ss=s.find_all(c)
             for b in ss:
                 v=b.find_all()
+                co=b.contents
                 n=s.new_tag(c)
                 u=b.get(ls[c])
                 n[ls[c]]='%s%s'%(l2,u)if(u[0]in['/','.'])and('http'not in u)else u
                 n.extend(v)
+                n.contents=co
                 b.replace_with(n)
 
         deleted_tags=['map_link_par']
         td=s.find('div',{'class':deleted_tags})
         # 删除标签及其后面的所有标签
-        next_siblings = td.find_next_siblings()
-        for sibling in next_siblings:
-            sibling.decompose()
+        try:
+            next_siblings = td.find_next_siblings()
+            for sibling in next_siblings:
+                sibling.decompose()
+        except:pass
 
-        s.find('div',{'class':'marker-time'}).decompose()
+        try:s.find('div',{'class':'marker-time'}).decompose()
+        except:pass
 
         # 删除标签本身
-        td.decompose()
+        try:td.decompose()
+        except:pass
 
         invalid_tags=['popup_video','popup_imgi','popup-text']
         for tag in invalid_tags:
@@ -119,7 +126,8 @@ if len(dr)==0:
         for z in rmt:
             for x in s.findAll(z):
                 n=s.new_tag('p')
-                n.string=x.string
+                if x.get_text().strip():
+                    n.string=x.get_text().strip()
                 x.replace_with(n)
 
         im=[b.get('src').split('?')[0].replace('\n','')for b in s.find_all('img')]

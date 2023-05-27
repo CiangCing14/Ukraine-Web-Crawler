@@ -56,7 +56,7 @@ if len(dr)==0:
         ms=['og:title','og:type','og:description']
         h={b.split(':')[1].replace('_',' ').replace('\n',' '):s.find('meta',{'property':b}).get('content')for b in ms}
         j=s.find('script',{'type':'application/ld+json'}).string.strip().replace('\r','').replace('\n','')
-        j=json.loads(j)
+        j=eval(j.replace('null','None'))
         k={'published time':'datePublished',
            'modified time':'dateModified',
            'author':['author',['name','@type']],
@@ -71,15 +71,18 @@ if len(dr)==0:
         h.update(ha)
 
         ls={'a':'href','img':'src'}
-        s=bs(t,'html.parser')
+        s=bs(i['text'],'html.parser')
         for c in ls.keys():
             ss=s.find_all(c)
             for b in ss:
                 v=b.find_all()
+                co=b.contents
                 n=s.new_tag(c)
                 u=b.get(ls[c])
+                if not u:continue
                 n[ls[c]]='%s%s'%(l2,u)if(u[0]in['/','.'])and('http'not in u)else u
                 n.extend(v)
+                n.contents=co
                 b.replace_with(n)
 
         invalid_tags=['div']
@@ -194,7 +197,7 @@ Source: %s'''%(h['title'],
                h['published time'],
                h['modified time'],
                h['description'],
-               json.dumps(['[%s](%s)'%('%s...'%u[:13]if len(u:=c.split('/')[-1])>16 else u,c)for c in h['images']]),
+               repr(['[%s](%s)'%('%s...'%u[:13]if len(u:=c.split('/')[-1])>16 else u,c)for c in h['images']]),
                repr([z for z in h['tags']])if h['tags']else None,
                h['type'].title(),
                t,

@@ -38,7 +38,7 @@ if len(dr)==0:
     ed=''
     for a in range(len(hl)):
         h=rg.rget(hl[a]).text
-        if not os.path.exists('test.txt'):f=open('test.txt','w+');f.write(h);f.close()
+        f=open('test.htm','w+');f.write(h);f.close()
         h2=h.split('<div class="single-content">')[1].split('<div class="tags-area"')[0]
         if(sp:='<a href="https://www.facebook.com/iamo.armyinform/">')in h2:
             h2=sp.join(h2.split(sp)[:-1])

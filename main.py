@@ -2,9 +2,9 @@ import os,sys,importlib,shutil,time,markdown,re,datetime,hashlib,markdown2odt,py
 import urllib.parse
 import translators.server as tss
 
-ds='/home/a/urwar2023.github.io/Maoism-Datasets/%s'%str(datetime.date.today())
-pds='/home/a/urwar2023.github.io/Maoism-Datasets/%s'%str(datetime.date.today()+datetime.timedelta(days=-1))
-ud='/home/a/urwar2023.github.io'
+ds='/media/a/aa0c6e82-c513-458a-ba7f-a7d591ff95fc/urwar2023.github.io/Maoism-Datasets/%s'%str(datetime.date.today()+datetime.timedelta(days=0))
+pds='/media/a/aa0c6e82-c513-458a-ba7f-a7d591ff95fc/urwar2023.github.io/Maoism-Datasets/%s'%str(datetime.date.today()+datetime.timedelta(days=-1))
+ud='/media/a/aa0c6e82-c513-458a-ba7f-a7d591ff95fc/urwar2023.github.io'
 
 ps=[]
 for a in os.walk(sys.path[0]):
@@ -141,78 +141,48 @@ if not os.path.exists('index.txt'):
     os.system('soffice --headless --convert-to txt index.odt')
 if not os.path.exists('index_list.txt'):
     f=open('index.md.bin','r');t=f.read().split('<!--NEWS-->');f.close()
-    t2=['乌俄战争新闻 Ukrainian-Russian War News %s\n\n=====每日中英多语乌俄战争新闻文本部分翻译可以访问网址=====\nhttps://urwar2023.github.io/\n=====Daily translations of Chinese-English multilingual Marxist-Leninist-Maoist news texts can be accessed at the website=====\n'%(str(datetime.datetime.today()).split(' ')[0])]
+    t2=['乌俄战争新闻 Ukrainian-Russian War News %s\n\n=====每日中英多语乌俄战争新闻文本部分翻译可以访问网址=====\nhttps://urwar2023.github.io/\n=====Daily translations of Chinese-English multilingual Ukrainian-Russian War News texts can be accessed at the website=====\n'%(str(datetime.datetime.today()+datetime.timedelta(days=0)).split(' ')[0])]
     for a in t:
         a=a.split('<!--METADATA-->')
         t2.append('%s\n%s'%([v for v in a[0].split('\n')if v][0].split('# ')[1],[v for v in a[1].split('\n')if v][-1].split('Source: ')[1].split('(')[1].split(')')[0]))
-    t2.append('\n=====每日中英多语乌俄战争新闻文本部分翻译可以访问网址=====\nhttps://urwar2023.github.io/\n=====Daily translations of Chinese-English multilingual Marxist-Leninist-Maoist news texts can be accessed at the website=====')
+    t2.append('\n=====每日中英多语乌俄战争新闻文本部分翻译可以访问网址=====\nhttps://urwar2023.github.io/\n=====Daily translations of Chinese-English multilingual Ukrainian-Russian War News texts can be accessed at the website=====')
     t='\n'.join(t2)
     f=open('index_list.txt','w+');f.write(t);f.close()
-def trans_cycle(t,de,sr):
+def trans_cycle(t,de,sr,nm):
     time.sleep(1)
-    return trans(t,de,sr)
-def trans(t,de='zh',sr='auto'):
+    if nm==3:return t
+    return trans(t,de,sr,nm)
+def trans(t,de='zh',sr='auto',nm=0):
+    nm+=1
     if de==sr:return t
     if not t:return t
     try:
         tt=tss.google(t,sr,de)
-        '''
-        #ch=[jieba.lcut(a)for a in re.findall('[\\u4e00-\\u9fa5]+',tt)]
-        ch=[[a]for a in re.findall('[\\u4e00-\\u9fa5]+',tt)]
-        cs=[a.split(' ')for a in re.split('[\\u4e00-\\u9fa5]+',tt)]
-        cp=[]
-        lcs=len(cs)
-        for a in range(lcs):
-            cp.append(cs[a])
-            if a!=lcs-1:cp.append(ch[a])
-        cpl=[]
-        for a in cp:
-            for c in a:
-                cpl.append(c)
-        #ch2=[jieba.lcut(a)for a in re.findall('[\\u4e00-\\u9fa5]+',t)]
-        ch2=[[a]for a in re.findall('[\\u4e00-\\u9fa5]+',t)]
-        cs2=[a.split(' ')for a in re.split('[\\u4e00-\\u9fa5]+',t)]
-        cp2=[]
-        lcs=len(cs2)
-        for a in range(lcs):
-            cp2.append(cs2[a])
-            if a!=lcs-1:cp2.append(ch2[a])
-        cpl2=[]
-        for a in cp2:
-            for c in a:
-                cpl2.append(c)
-        cp,cp2=cpl,cpl2
-        cpl=[]
-        for a in cp2:
-            if a not in cpl:
-                cpl.append(a)
-        fn=len([a for a in cp if a])
-        nn=0
-        for a in cp:
-            for b in cpl:
-                if a:
-                    if b:
-                        if a==b:
-                            nn+=1
-        sn=nn/fn
-        if sn>0.1:
-            return trans_cycle(t,de,sr)
-        '''
         return tt
     except tss.TranslatorError:return t
     except IndexError:print(t);return t
-    else:return trans_cycle(t,de,sr)
+    else:return trans_cycle(t,de,sr,nm)
 class thread_tra(threading.Thread):
     def __init__(self,ne,a,des,y):
         threading.Thread.__init__(self);self.ne,self.a,self.des,self.y=ne,a,des,y
     def run(self):
         return tra(self.ne,self.a,self.des,self.y)
-def tra_cycle(ne,a,des,y):
+def tra_cycle(ne,a,des,y,mm):
     time.sleep(1)
-    tra(ne,a,des,y)
-def tra(ne,a,des,y):
+    tra(ne,a,des,y,mm)
+def tra(ne,a,des,y,mm=0):
+    global nec
+    mm+=1
+    if mm==3:
+        n=ne[a]
+        nec.append([a,n])
+    '''
+    if a+1==39:
+        n=ne[a]
+        nec.append([a,n])
+        quit()
+    '''
     try:
-        global nec
         print('第%d个新闻元数据开始翻译。'%(a+1))
         src='auto'
         if(ne[a]['source'].find('https://maozhuyi.home.blog')!=-1)or(ne[a]['source'].find('https://mlmmlm.icu')!=-1):
@@ -280,7 +250,7 @@ def tra(ne,a,des,y):
             n['meta'][mt[b].title()]=n['meta'][b]
             del n['meta'][b]
         nec.append([a,n])
-    except:tra(ne,a,des,y)
+    except:tra(ne,a,des,y,mm)
 des=['zh','en']
 fa=['jpg','png','bmp','gif','webp','jpeg']
 fa.extend([e.upper()for e in fa])
@@ -355,11 +325,11 @@ News Source: %s'''%(a['title'],
         os.system('soffice --headless --convert-to txt index_%s.odt'%aft[y])
     if not os.path.exists('index_list_%s.txt'%aft[y]):
         f=open('index_%s.md.bin'%aft[y],'r');t=f.read().split('<!--NEWS-->');f.close()
-        t2=['乌俄战争新闻 Ukrainian-Russian War News %s\n\n=====每日中英多语乌俄战争新闻文本部分翻译可以访问网址=====\nhttps://urwar2023.github.io/\n=====Daily translations of Chinese-English multilingual Marxist-Leninist-Maoist news texts can be accessed at the website=====\n'%(str(datetime.datetime.today()).split(' ')[0])]
+        t2=['乌俄战争新闻 Ukrainian-Russian War News %s\n\n=====每日中英多语乌俄战争新闻文本部分翻译可以访问网址=====\nhttps://urwar2023.github.io/\n=====Daily translations of Chinese-English multilingual Ukrainian-Russian War News texts can be accessed at the website=====\n'%(str(datetime.datetime.today()+datetime.timedelta(days=0)).split(' ')[0])]
         for a in t:
             a=a.split('<!--METADATA-->')
             t2.append('%s\n%s'%([v for v in a[0].split('\n')if v][0].split('# ')[1],[v for v in a[1].split('\n')if v][-1].split('Source: ')[1].split('(')[1].split(')')[0]))
-        t2.append('\n=====每日中英多语乌俄战争新闻文本部分翻译可以访问网址=====\nhttps://urwar2023.github.io/\n=====Daily translations of Chinese-English multilingual Marxist-Leninist-Maoist news texts can be accessed at the website=====')
+        t2.append('\n=====每日中英多语乌俄战争新闻文本部分翻译可以访问网址=====\nhttps://urwar2023.github.io/\n=====Daily translations of Chinese-English multilingual Ukrainian-Russian War News texts can be accessed at the website=====')
         t='\n'.join(t2)
         f=open('index_list_%s.txt'%aft[y],'w+');f.write(t);f.close()
 l=['HTMs','MDs','__pycache__','src','ConvertedIMGs','Images','index.md.bin','index.htm','index.odt','index.pdf','index.txt','index_list.txt']

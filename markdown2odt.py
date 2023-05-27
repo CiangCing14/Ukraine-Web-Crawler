@@ -64,7 +64,9 @@ def run(mdf,lan):
             except:pass
             aft='"'.join(t[a].split('src="')[1].split('"')[1:])
             if aft[:3]==' />':aft=aft[3:]
-            else:raise TypeError
+            else:
+                pass
+                #raise TypeError
             tt='%s%s'%(tt,aft)
     t=tt
     t=t.replace('<em>','<text:span text:style-name="T5">').replace('</em>','</text:span>')
@@ -74,7 +76,7 @@ def run(mdf,lan):
     t=t.replace('>','>\n').strip()
     t='%s\n%s\n%s'%(te.split('<text:h text:style-name="P10" text:outline-level="1" text:is-list-header="true"><text:span text:style-name="T6">#</text:span><text:span text:style-name="T3">新闻标题</text:span></text:h>')[0],t,'</office:text></office:body>%s'%te.split('</office:text></office:body>')[1])
     t=t.replace('%LAN%',lan)
-    dt=str(datetime.date.today()).split('T')[0].split(' ')[0].split('-')
+    dt=str(datetime.date.today()+datetime.timedelta(days=0)).split('T')[0].split(' ')[0].split('-')
     t=t.replace('%YY%',dt[0])
     t=t.replace('%MO%',dt[1].rjust(2).replace(' ','0'))
     t=t.replace('%DA%',dt[2].rjust(2).replace(' ','0'))
@@ -85,6 +87,7 @@ def run(mdf,lan):
     t=t.replace('& ','&quot; ')
     t=t.replace('o&Q','o&quot;Q')
     t=t.replace('&amp;lt;','&lt;')
+    t=t.replace('<...>','&lt;...>')
     f=open('sample2/content.xml','w+');f.write(t);f.close()
     os.system('cd sample2;7z a a.zip .')
     shutil.move('sample2/a.zip','%s.odt'%'.'.join(mdf.split('.')[:-2]))
